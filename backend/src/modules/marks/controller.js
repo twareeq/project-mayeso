@@ -1,11 +1,11 @@
-const { supabase } = require('../../config/supabase');
+const { supabaseAdmin } = require('../../config/supabase');
 
 const enterBulkMarks = async (req, res, next) => {
   const { exam_id, marks } = req.body; // marks: [{ student_id, score, remarks }]
 
   try {
     // Validate exam existence and not locked
-    const { data: exam, error: examError } = await supabase
+    const { data: exam, error: examError } = await supabaseAdmin
       .from('exams')
       .select('max_score, is_locked')
       .eq('id', exam_id)
@@ -33,7 +33,7 @@ const enterBulkMarks = async (req, res, next) => {
       };
     });
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('marks')
       .upsert(marksToInsert, { onConflict: 'student_id,exam_id' });
 
@@ -51,7 +51,7 @@ const enterBulkMarks = async (req, res, next) => {
 const getMarks = async (req, res, next) => {
   const { exam_id, class_id } = req.query;
   try {
-    let query = supabase.from('marks').select('*, students(full_name, student_number)');
+    let query = supabaseAdmin.from('marks').select('*, students(full_name, student_number)');
     if (exam_id) query = query.eq('exam_id', exam_id);
     // If class_id provided, we might need a join or filter by student's class
     if (class_id) {

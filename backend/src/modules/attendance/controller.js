@@ -1,4 +1,4 @@
-const { supabase } = require('../../config/supabase');
+const { supabaseAdmin } = require('../../config/supabase');
 
 const markBulkAttendance = async (req, res, next) => {
   const { class_id, date, attendance } = req.body; // attendance: [{ student_id, status }]
@@ -12,7 +12,7 @@ const markBulkAttendance = async (req, res, next) => {
       marked_by: req.user.id
     }));
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('attendance')
       .upsert(recordsToInsert, { onConflict: 'student_id,date' });
 
@@ -30,7 +30,7 @@ const markBulkAttendance = async (req, res, next) => {
 const getAttendance = async (req, res, next) => {
   const { class_id, date, student_id } = req.query;
   try {
-    let query = supabase.from('attendance').select('*, students(full_name)');
+    let query = supabaseAdmin.from('attendance').select('*, students(full_name)');
     if (class_id) query = query.eq('class_id', class_id);
     if (date) query = query.eq('date', date);
     if (student_id) query = query.eq('student_id', student_id);

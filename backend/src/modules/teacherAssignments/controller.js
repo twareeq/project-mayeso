@@ -1,8 +1,8 @@
-const { supabase } = require('../../config/supabase');
+const { supabaseAdmin } = require('../../config/supabase');
 
 exports.listAssignments = async (req, res, next) => {
   try {
-    let query = supabase.from('teacher_assignments').select(`
+    let query = supabaseAdmin.from('teacher_assignments').select(`
       *,
       profiles(full_name, email),
       classes(name, sections(school_id)),
@@ -40,7 +40,7 @@ exports.assignTeacher = async (req, res, next) => {
     }
 
     // Insert
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('teacher_assignments')
       .insert([{ teacher_id, class_id, subject_id, academic_year, assigned_by: req.user.id }])
       .select()
@@ -61,13 +61,13 @@ exports.assignTeacher = async (req, res, next) => {
 exports.removeAssignment = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { data: assignment } = await supabase.from('teacher_assignments').select('*, classes!inner(sections!inner(school_id))').eq('id', id).single();
+    const { data: assignment } = await supabaseAdmin.from('teacher_assignments').select('*, classes!inner(sections!inner(school_id))').eq('id', id).single();
     
     if (!assignment || (req.user.role !== 'admin' && assignment.classes.sections.school_id !== req.user.school_id)) {
       return res.status(404).json({ success: false, error: { message: 'Assignment not found' }});
     }
 
-    const { error } = await supabase.from('teacher_assignments').delete().eq('id', id);
+    const { error } = await supabaseAdmin.from('teacher_assignments').delete().eq('id', id);
     if (error) throw error;
 
     req.auditData = { entityId: id, oldValue: assignment };

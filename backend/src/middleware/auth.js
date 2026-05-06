@@ -1,4 +1,4 @@
-const { supabase } = require('../config/supabase');
+const { supabase, supabaseAdmin } = require('../config/supabase');
 
 const authenticate = async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -21,8 +21,8 @@ const authenticate = async (req, res, next) => {
       });
     }
 
-    // Get user profile from our database
-    const { data: profile, error: profileError } = await supabase
+    // Get user profile from our database using service role to bypass RLS
+    const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('*')
       .eq('id', user.id)

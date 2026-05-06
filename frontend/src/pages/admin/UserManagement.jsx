@@ -41,8 +41,8 @@ const UserManagement = () => {
         api.get('/users'),
         api.get('/schools')
       ]);
-      setUsers(usersRes.data.data);
-      setSchools(schoolsRes.data.data);
+      setUsers(usersRes.data);
+      setSchools(schoolsRes.data);
     } catch (err) {
       setError('Failed to fetch user data');
     } finally {

@@ -1,10 +1,10 @@
-const { supabase } = require('../../config/supabase');
+const { supabaseAdmin } = require('../../config/supabase');
 
 const createLessonPlan = async (req, res, next) => {
   const { class_id, subject_id, title, content, week_number, academic_year } = req.body;
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('lesson_plans')
       .insert({
         teacher_id: req.user.id,
@@ -31,7 +31,7 @@ const submitLessonPlan = async (req, res, next) => {
   const { id } = req.params;
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('lesson_plans')
       .update({ status: 'submitted', submitted_at: new Date() })
       .eq('id', id)
@@ -52,7 +52,7 @@ const reviewLessonPlan = async (req, res, next) => {
   const { status, review_notes } = req.body; // 'reviewed' or 'rejected'
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('lesson_plans')
       .update({
         status,
@@ -74,7 +74,7 @@ const reviewLessonPlan = async (req, res, next) => {
 
 const listLessonPlans = async (req, res, next) => {
   try {
-    let query = supabase.from('lesson_plans').select('*, classes(name), subjects(name), profiles!teacher_id(full_name)');
+    let query = supabaseAdmin.from('lesson_plans').select('*, classes(name), subjects(name), profiles!teacher_id(full_name)');
     
     if (req.user.role === 'teacher') {
       query = query.eq('teacher_id', req.user.id);
@@ -94,7 +94,7 @@ const listLessonPlans = async (req, res, next) => {
 const getLessonPlanById = async (req, res, next) => {
   const { id } = req.params;
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('lesson_plans')
       .select('*, classes(name), subjects(name), profiles!teacher_id(full_name)')
       .eq('id', id)

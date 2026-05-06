@@ -1,10 +1,10 @@
-const { supabase } = require('../../config/supabase');
+const { supabaseAdmin } = require('../../config/supabase');
 
 const listStudents = async (req, res, next) => {
   const { class_id, school_id } = req.query;
   
   try {
-    let query = supabase.from('students').select('*', { count: 'exact' });
+    let query = supabaseAdmin.from('students').select('*', { count: 'exact' });
 
     if (class_id) query = query.eq('class_id', class_id);
     if (school_id) query = query.eq('school_id', school_id);
@@ -31,11 +31,11 @@ const registerStudent = async (req, res, next) => {
     // For now, let's just use a simple random one or query last count.
     // In a real system, this would be more robust.
     const year = new Date().getFullYear();
-    const { data: countData } = await supabase.from('students').select('id', { count: 'exact', head: true }).eq('school_id', school_id);
+    const { data: countData } = await supabaseAdmin.from('students').select('id', { count: 'exact', head: true }).eq('school_id', school_id);
     const sequence = (countData ? countData.length + 1 : 1).toString().padStart(4, '0');
     const student_number = `SCH-${year}-${sequence}`;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('students')
       .insert({
         student_number,
@@ -63,7 +63,7 @@ const registerStudent = async (req, res, next) => {
 const getStudentById = async (req, res, next) => {
   const { id } = req.params;
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('students')
       .select('*, classes(name, sections(school_id, schools(name)))')
       .eq('id', id)

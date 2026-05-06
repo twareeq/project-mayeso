@@ -1,4 +1,4 @@
-const { supabase } = require('../../config/supabase');
+const { supabaseAdmin } = require('../../config/supabase');
 
 exports.listSections = async (req, res, next) => {
   try {
@@ -7,7 +7,7 @@ exports.listSections = async (req, res, next) => {
       return res.status(400).json({ success: false, error: { message: 'User is not assigned to a school' }});
     }
 
-    let query = supabase.from('sections').select('*');
+    let query = supabaseAdmin.from('sections').select('*');
     if (school_id) {
       query = query.eq('school_id', school_id);
     }
@@ -29,7 +29,7 @@ exports.createSection = async (req, res, next) => {
     if (!name) return res.status(400).json({ success: false, error: { message: 'Section name is required' }});
     if (!school_id) return res.status(400).json({ success: false, error: { message: 'User must belong to a school' }});
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('sections')
       .insert([{ name, school_id }])
       .select()
@@ -52,10 +52,10 @@ exports.deleteSection = async (req, res, next) => {
     const { id } = req.params;
     
     // First fetch to store old value for audit
-    const { data: section } = await supabase.from('sections').select('*').eq('id', id).single();
+    const { data: section } = await supabaseAdmin.from('sections').select('*').eq('id', id).single();
     if (!section) return res.status(404).json({ success: false, error: { message: 'Section not found' }});
 
-    const { error } = await supabase.from('sections').delete().eq('id', id);
+    const { error } = await supabaseAdmin.from('sections').delete().eq('id', id);
     if (error) {
       if (error.code === '23503') return res.status(409).json({ success: false, error: { message: 'Cannot delete section with existing classes' }});
       throw error;

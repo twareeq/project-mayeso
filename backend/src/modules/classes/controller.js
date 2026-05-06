@@ -1,10 +1,10 @@
-const { supabase } = require('../../config/supabase');
+const { supabaseAdmin } = require('../../config/supabase');
 
 exports.listClasses = async (req, res, next) => {
   try {
     const school_id = req.user.school_id;
     // We join with sections to ensure we only get classes for this school
-    let query = supabase.from('classes').select('*, sections!inner(*)');
+    let query = supabaseAdmin.from('classes').select('*, sections!inner(*)');
     if (school_id) {
       query = query.eq('sections.school_id', school_id);
     }
@@ -27,12 +27,12 @@ exports.createClass = async (req, res, next) => {
     }
 
     // Verify section belongs to user's school
-    const { data: section } = await supabase.from('sections').select('school_id').eq('id', section_id).single();
+    const { data: section } = await supabaseAdmin.from('sections').select('school_id').eq('id', section_id).single();
     if (!section || (req.user.role !== 'admin' && section.school_id !== req.user.school_id)) {
       return res.status(403).json({ success: false, error: { message: 'Invalid section or permission denied' }});
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('classes')
       .insert([{ name, section_id, academic_year }])
       .select()
@@ -53,12 +53,12 @@ exports.createClass = async (req, res, next) => {
 exports.deleteClass = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { data: cls } = await supabase.from('classes').select('*, sections!inner(*)').eq('id', id).single();
+    const { data: cls } = await supabaseAdmin.from('classes').select('*, sections!inner(*)').eq('id', id).single();
     if (!cls || (req.user.role !== 'admin' && cls.sections.school_id !== req.user.school_id)) {
       return res.status(404).json({ success: false, error: { message: 'Class not found' }});
     }
 
-    const { error } = await supabase.from('classes').delete().eq('id', id);
+    const { error } = await supabaseAdmin.from('classes').delete().eq('id', id);
     if (error) {
       if (error.code === '23503') return res.status(409).json({ success: false, error: { message: 'Cannot delete class with existing students or subjects' }});
       throw error;

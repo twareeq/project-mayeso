@@ -1,9 +1,9 @@
-const { supabase } = require('../../config/supabase');
+const { supabaseAdmin } = require('../../config/supabase');
 
 exports.listSubjects = async (req, res, next) => {
   try {
     const school_id = req.user.school_id;
-    let query = supabase.from('subjects').select('*, classes!inner(name, sections!inner(school_id))');
+    let query = supabaseAdmin.from('subjects').select('*, classes!inner(name, sections!inner(school_id))');
     if (school_id) {
       query = query.eq('classes.sections.school_id', school_id);
     }
@@ -32,12 +32,12 @@ exports.createSubject = async (req, res, next) => {
       return res.status(400).json({ success: false, error: { message: 'Missing required fields' }});
     }
 
-    const { data: cls } = await supabase.from('classes').select('sections(school_id)').eq('id', class_id).single();
+    const { data: cls } = await supabaseAdmin.from('classes').select('sections(school_id)').eq('id', class_id).single();
     if (!cls || (req.user.role !== 'admin' && cls.sections.school_id !== req.user.school_id)) {
       return res.status(403).json({ success: false, error: { message: 'Invalid class or permission denied' }});
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('subjects')
       .insert([{ name, code, class_id }])
       .select()
@@ -58,12 +58,12 @@ exports.createSubject = async (req, res, next) => {
 exports.deleteSubject = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { data: subject } = await supabase.from('subjects').select('*, classes!inner(sections!inner(school_id))').eq('id', id).single();
+    const { data: subject } = await supabaseAdmin.from('subjects').select('*, classes!inner(sections!inner(school_id))').eq('id', id).single();
     if (!subject || (req.user.role !== 'admin' && subject.classes.sections.school_id !== req.user.school_id)) {
       return res.status(404).json({ success: false, error: { message: 'Subject not found' }});
     }
 
-    const { error } = await supabase.from('subjects').delete().eq('id', id);
+    const { error } = await supabaseAdmin.from('subjects').delete().eq('id', id);
     if (error) throw error;
 
     req.auditData = { entityId: id, oldValue: subject };

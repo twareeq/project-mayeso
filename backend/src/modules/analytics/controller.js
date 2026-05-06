@@ -1,9 +1,9 @@
-const { supabase } = require('../../config/supabase');
+const { supabaseAdmin } = require('../../config/supabase');
 
 const getStudentPerformance = async (req, res, next) => {
   const { id } = req.params;
   try {
-    const { data: marks, error } = await supabase
+    const { data: marks, error } = await supabaseAdmin
       .from('marks')
       .select('*, exams(name, exam_date, subjects(name))')
       .eq('student_id', id)
@@ -30,7 +30,7 @@ const getClassSummary = async (req, res, next) => {
   const { id } = req.params; // class_id
   try {
     // Average score per subject for this class
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .rpc('get_class_subject_averages', { class_uuid: id });
 
     if (error) throw error;
@@ -46,7 +46,7 @@ const getAtRiskStudents = async (req, res, next) => {
   try {
     // In a real app, this would be a complex join or a materialized view.
     // For this prototype, we'll fetch students and then filter.
-    const { data: students, error } = await supabase
+    const { data: students, error } = await supabaseAdmin
       .from('students')
       .select('*, classes(name)')
       .eq('school_id', schoolId);
@@ -54,14 +54,14 @@ const getAtRiskStudents = async (req, res, next) => {
     if (error) throw error;
 
     // Fetch averages for these students
-    const { data: marks, error: marksError } = await supabase
+    const { data: marks, error: marksError } = await supabaseAdmin
       .from('marks')
       .select('student_id, score');
     
     if (marksError) throw marksError;
 
     // Fetch attendance for these students
-    const { data: attendance, error: attError } = await supabase
+    const { data: attendance, error: attError } = await supabaseAdmin
       .from('attendance')
       .select('student_id, status');
     
@@ -98,7 +98,7 @@ const getAttendanceTrend = async (req, res, next) => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('attendance')
       .select('date, status')
       .eq('class_id', id)
