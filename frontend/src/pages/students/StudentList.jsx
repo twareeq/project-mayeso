@@ -13,12 +13,9 @@ const StudentList = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [assignRes, studentRes] = await Promise.all([
-          api.get('/teacher-assignments'),
-          api.get('/students')
-        ]);
-        setAssignments(assignRes.data);
-        setStudents(studentRes.data);
+        const response = await api.get('/students');
+        // Based on the interceptor, response is { success: true, data: [...] }
+        setStudents(response.data || []);
       } catch (err) {
         console.error('Failed to fetch students:', err);
       } finally {

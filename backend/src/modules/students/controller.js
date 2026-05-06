@@ -4,7 +4,7 @@ const listStudents = async (req, res, next) => {
   const { class_id, school_id } = req.query;
   
   try {
-    let query = supabaseAdmin.from('students').select('*', { count: 'exact' });
+    let query = supabaseAdmin.from('students').select('*, classes(name)', { count: 'exact' });
 
     if (class_id) query = query.eq('class_id', class_id);
     if (school_id) query = query.eq('school_id', school_id);
@@ -27,13 +27,23 @@ const registerStudent = async (req, res, next) => {
   const { full_name, date_of_birth, gender, class_id, school_id } = req.body;
 
   try {
-    // Generate student number: {school_code}-{year}-{4-digit-sequence}
-    // For now, let's just use a simple random one or query last count.
-    // In a real system, this would be more robust.
+    // Generate student number: {school_code}-{year}-{sequence}
     const year = new Date().getFullYear();
-    const { data: countData } = await supabaseAdmin.from('students').select('id', { count: 'exact', head: true }).eq('school_id', school_id);
-    const sequence = (countData ? countData.length + 1 : 1).toString().padStart(4, '0');
-    const student_number = `SCH-${year}-${sequence}`;
+    const { data: school } = await supabaseAdmin.from('schools').select('code').eq('id', school_id).single();
+    const prefix = school?.code || 'SCH';
+
+    // Get the current count to use as a base sequence
+    const { count, error: countError } = await supabaseAdmin
+      .from('students')
+      .select('*', { count: 'exact', head: true })
+      .eq('school_id', school_id);
+    
+    if (countError) throw countError;
+
+    // Use count + 1, but add a small random suffix to prevent collisions
+    const sequence = (count + 1).toString().padStart(4, '0');
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    const student_number = `${prefix}-${year}-${sequence}-${random}`;
 
     const { data, error } = await supabaseAdmin
       .from('students')

@@ -19,26 +19,41 @@ const StudentForm = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [successData, setSuccessData] = useState(null);
-  const [assignments, setAssignments] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [fetchingClasses, setFetchingClasses] = useState(true);
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(schema)
   });
 
   useEffect(() => {
-    const fetchAssignments = async () => {
-      const { data } = await api.get('/teacher-assignments');
-      setAssignments(data);
+    const fetchClasses = async () => {
+      try {
+        const { data } = await api.get('/classes');
+        setClasses(data);
+      } catch (err) {
+        console.error('Failed to fetch classes:', err);
+      } finally {
+        setFetchingClasses(false);
+      }
     };
-    fetchAssignments();
+    fetchClasses();
   }, []);
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (formData) => {
     setLoading(true);
     try {
+      // Find selected class to get its school_id
+      const selectedClass = classes.find(c => c.id === formData.class_id);
+      const school_id = selectedClass?.sections?.school_id || user.school_id;
+
+      if (!school_id) {
+        throw new Error('Could not determine school ID. Please ensure the class is correctly configured.');
+      }
+
       const { data: result } = await api.post('/students', {
-        ...data,
-        school_id: user.school_id
+        ...formData,
+        school_id
       });
       setSuccessData(result);
     } catch (error) {
@@ -126,11 +141,12 @@ const StudentForm = () => {
             <label className="block text-sm font-medium text-slate-400 mb-2">Class Assignment</label>
             <select 
               {...register('class_id')}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:border-blue-500 outline-none transition-colors"
+              disabled={fetchingClasses}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:border-blue-500 outline-none transition-colors disabled:opacity-50"
             >
-              <option value="">Select Class</option>
-              {assignments.map(a => (
-                <option key={a.id} value={a.class_id}>{a.classes.name} ({a.subjects.name})</option>
+              <option value="">{fetchingClasses ? 'Loading classes...' : 'Select Class'}</option>
+              {classes.map(c => (
+                <option key={c.id} value={c.id}>{c.name} ({c.sections?.name || 'No Section'})</option>
               ))}
             </select>
             {errors.class_id && <p className="text-red-500 text-xs mt-1">{errors.class_id.message}</p>}
