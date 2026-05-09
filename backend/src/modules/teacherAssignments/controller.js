@@ -4,9 +4,9 @@ exports.listAssignments = async (req, res, next) => {
   try {
     let query = supabaseAdmin.from('teacher_assignments').select(`
       *,
-      profiles(full_name, email),
-      classes(name, sections(school_id)),
-      subjects(name, code)
+      profiles:profiles!teacher_assignments_teacher_id_fkey(full_name, email),
+      classes!inner(id, name, sections!inner(school_id)),
+      subjects(id, name, code)
     `);
 
     // If teacher, only see own assignments. If head_teacher, see all in school.

@@ -21,6 +21,8 @@ import StudentProfile from './pages/students/StudentProfile';
 // Marks
 import MarksEntry from './pages/marks/MarksEntry';
 import MarksHistory from './pages/marks/MarksHistory';
+import StudentResult from './pages/marks/StudentResult';
+import ClassResults from './pages/marks/ClassResults';
 
 // Attendance
 import AttendanceMarking from './pages/attendance/AttendanceMarking';
@@ -85,6 +87,8 @@ function App() {
           {/* Marks & Assessments */}
           <Route path="/marks" element={<RoleGuard><PageWrapper><MarksEntry /></PageWrapper></RoleGuard>} />
           <Route path="/marks/history" element={<RoleGuard><PageWrapper><MarksHistory /></PageWrapper></RoleGuard>} />
+          <Route path="/marks/class-results" element={<RoleGuard><PageWrapper><ClassResults /></PageWrapper></RoleGuard>} />
+          <Route path="/students/:studentId/result" element={<RoleGuard><PageWrapper><StudentResult /></PageWrapper></RoleGuard>} />
 
           {/* Attendance */}
           <Route path="/attendance" element={<RoleGuard><PageWrapper><AttendanceMarking /></PageWrapper></RoleGuard>} />

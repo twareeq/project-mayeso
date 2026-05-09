@@ -17,7 +17,7 @@ app.use(express.json());
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  max: 1000 // limit each IP to 1000 requests per windowMs
 });
 app.use('/api/', limiter);
 
@@ -35,12 +35,14 @@ app.use('/api/v1/classes', require('./src/modules/classes/routes'));
 app.use('/api/v1/subjects', require('./src/modules/subjects/routes'));
 app.use('/api/v1/teacher-assignments', require('./src/modules/teacherAssignments/routes'));
 app.use('/api/v1/system-config', require('./src/modules/systemConfig/routes'));
+app.use('/api/v1/academic-terms', require('./src/modules/academicTerms/routes'));
 app.use('/api/v1/exams', require('./src/modules/exams/routes'));
 app.use('/api/v1/students', require('./src/modules/students/routes'));
 app.use('/api/v1/marks', require('./src/modules/marks/routes'));
 app.use('/api/v1/attendance', require('./src/modules/attendance/routes'));
 app.use('/api/v1/lesson-plans', require('./src/modules/lessonPlans/routes'));
 app.use('/api/v1/analytics', require('./src/modules/analytics/routes'));
+app.use('/api/v1/results', require('./src/modules/results/routes'));
 app.use('/api/v1/reports', require('./src/modules/reports/routes'));
 
 const { errorHandler } = require('./src/middleware/errorHandler');

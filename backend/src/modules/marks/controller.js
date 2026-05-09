@@ -1,13 +1,14 @@
 const { supabaseAdmin } = require('../../config/supabase');
+const { recomputeStudentResult } = require('./aggregation.service');
 
 const enterBulkMarks = async (req, res, next) => {
-  const { exam_id, marks } = req.body; // marks: [{ student_id, score, remarks }]
+  const { exam_id, marks } = req.body; // marks: [{ student_id, score, is_absent }]
 
   try {
     // Validate exam existence and not locked
     const { data: exam, error: examError } = await supabaseAdmin
       .from('exams')
-      .select('max_score, is_locked')
+      .select('id, class_id, term_id, max_score, is_locked')
       .eq('id', exam_id)
       .single();
 
@@ -15,21 +16,13 @@ const enterBulkMarks = async (req, res, next) => {
     if (exam.is_locked) return res.status(403).json({ success: false, error: { message: 'Exam is locked for edits' } });
 
     const marksToInsert = marks.map(m => {
-      // Compute grade (simplified)
-      let grade = 'F';
-      const pct = (m.score / exam.max_score) * 100;
-      if (pct >= 80) grade = 'A';
-      else if (pct >= 65) grade = 'B';
-      else if (pct >= 50) grade = 'C';
-      else if (pct >= 40) grade = 'D';
-
       return {
         exam_id,
         student_id: m.student_id,
-        score: m.score,
-        grade,
-        remarks: m.remarks,
-        entered_by: req.user.id
+        score: m.is_absent ? 0 : m.score,
+        is_absent: !!m.is_absent,
+        entered_by: req.user.id,
+        updated_at: new Date().toISOString()
       };
     });
 
@@ -38,6 +31,12 @@ const enterBulkMarks = async (req, res, next) => {
       .upsert(marksToInsert, { onConflict: 'student_id,exam_id' });
 
     if (error) throw error;
+
+    // Trigger recomputation for each student affected
+    // In a real production system, this should be a background job or a database trigger
+    for (const m of marksToInsert) {
+      await recomputeStudentResult(m.student_id, exam.class_id, exam.term_id);
+    }
 
     res.json({
       success: true,

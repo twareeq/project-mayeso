@@ -67,7 +67,9 @@ const LessonPlanForm = () => {
       alert(`Lesson plan ${isSubmit ? 'submitted' : 'saved'} successfully!`);
       navigate('/lesson-plans');
     } catch (error) {
-      alert('Failed to save lesson plan');
+      console.error('Save error:', error);
+      const message = error.response?.data?.error?.message || 'Failed to save lesson plan';
+      alert(message);
     } finally {
       setLoading(false);
     }

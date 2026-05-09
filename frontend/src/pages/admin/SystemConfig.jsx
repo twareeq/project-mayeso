@@ -122,52 +122,115 @@ const SystemConfig = () => {
 
           {activeTab === 'grading' && (
             <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-white">Grading Bands</h3>
-                <button className="flex items-center gap-2 text-blue-500 hover:text-blue-400 font-bold">
+              <div className="flex justify-between items-center bg-blue-600/10 p-6 rounded-[1.5rem] border border-blue-500/20">
+                <div>
+                  <h3 className="text-xl font-bold text-white">Grading Scale Band Management</h3>
+                  <p className="text-slate-400 text-sm mt-1">Define percentage thresholds for academic grades.</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    const newBands = [...config.grading_scale, { grade: '', min: 0, max: 0, label: '' }];
+                    setConfig({...config, grading_scale: newBands});
+                  }}
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all"
+                >
                   <Plus className="w-5 h-5" />
                   Add Band
                 </button>
               </div>
-              <table className="w-full text-left">
-                <thead className="text-slate-500 text-xs uppercase tracking-widest border-b border-slate-800">
-                  <tr>
-                    <th className="pb-4">Grade</th>
-                    <th className="pb-4">Min Score</th>
-                    <th className="pb-4">Max Score</th>
-                    <th className="pb-4">Label</th>
-                    <th className="pb-4">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800">
-                  {[
-                    { grade: 'A', min: 80, max: 100, label: 'Excellent' },
-                    { grade: 'B', min: 65, max: 79, label: 'Very Good' },
-                    { grade: 'C', min: 50, max: 64, label: 'Good' },
-                    { grade: 'D', min: 40, max: 49, label: 'Pass' },
-                    { grade: 'F', min: 0, max: 39, label: 'Fail' },
-                  ].map((band, i) => (
-                    <tr key={i} className="hover:bg-slate-800/30 transition-colors group">
-                      <td className="py-4 text-white font-bold">{band.grade}</td>
-                      <td className="py-4 text-slate-400">{band.min}</td>
-                      <td className="py-4 text-slate-400">{band.max}</td>
-                      <td className="py-4 text-slate-400">{band.label}</td>
-                      <td className="py-4">
-                        <button className="p-2 text-slate-500 hover:text-red-500 transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </td>
+
+              <div className="bg-slate-950/50 rounded-[2rem] border border-slate-800 p-2">
+                <table className="w-full text-left">
+                  <thead className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em]">
+                    <tr>
+                      <th className="px-6 py-4">Grade</th>
+                      <th className="px-6 py-4">Min %</th>
+                      <th className="px-6 py-4">Max %</th>
+                      <th className="px-6 py-4">Label</th>
+                      <th className="px-6 py-4 text-right">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-              <button 
-                onClick={() => handleSaveConfig('grading_scale', config.grading_scale)}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-2xl font-bold transition-all"
-              >
-                <Save className="w-5 h-5" />
-                Save Scale
-              </button>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    {config.grading_scale.map((band, i) => (
+                      <tr key={i} className="hover:bg-slate-800/20 transition-all group">
+                        <td className="px-6 py-4">
+                          <input 
+                            className="bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-white w-20 font-bold focus:border-blue-500 outline-none"
+                            value={band.grade}
+                            placeholder="A"
+                            onChange={(e) => {
+                              const newBands = [...config.grading_scale];
+                              newBands[i].grade = e.target.value.toUpperCase();
+                              setConfig({...config, grading_scale: newBands});
+                            }}
+                          />
+                        </td>
+                        <td className="px-6 py-4">
+                          <input 
+                            type="number"
+                            className="bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-white w-24 font-mono focus:border-blue-500 outline-none"
+                            value={band.min}
+                            onChange={(e) => {
+                              const newBands = [...config.grading_scale];
+                              newBands[i].min = parseInt(e.target.value);
+                              setConfig({...config, grading_scale: newBands});
+                            }}
+                          />
+                        </td>
+                        <td className="px-6 py-4">
+                          <input 
+                            type="number"
+                            className="bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-white w-24 font-mono focus:border-blue-500 outline-none"
+                            value={band.max}
+                            onChange={(e) => {
+                              const newBands = [...config.grading_scale];
+                              newBands[i].max = parseInt(e.target.value);
+                              setConfig({...config, grading_scale: newBands});
+                            }}
+                          />
+                        </td>
+                        <td className="px-6 py-4">
+                          <input 
+                            className="bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-white w-full focus:border-blue-500 outline-none"
+                            value={band.label}
+                            placeholder="Distinction"
+                            onChange={(e) => {
+                              const newBands = [...config.grading_scale];
+                              newBands[i].label = e.target.value;
+                              setConfig({...config, grading_scale: newBands});
+                            }}
+                          />
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button 
+                            onClick={() => {
+                              const newBands = config.grading_scale.filter((_, idx) => idx !== i);
+                              setConfig({...config, grading_scale: newBands});
+                            }}
+                            className="p-2.5 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl transition-all"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-slate-900 p-6 rounded-[1.5rem] border border-slate-800">
+                <div className="flex items-center gap-3 text-amber-500">
+                  <AlertTriangle className="w-5 h-5" />
+                  <span className="text-xs font-medium">Changes affect future calculations only. Ranges must be contiguous.</span>
+                </div>
+                <button 
+                  onClick={() => handleSaveConfig('grading_scale', config.grading_scale)}
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-10 py-3.5 rounded-2xl font-bold transition-all shadow-lg shadow-blue-900/20"
+                >
+                  <Save className="w-5 h-5" />
+                  Save Grading Scale
+                </button>
+              </div>
             </div>
           )}
 

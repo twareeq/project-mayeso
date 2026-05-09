@@ -2,9 +2,15 @@ const { supabaseAdmin } = require('../../config/supabase');
 
 const listUsers = async (req, res, next) => {
   try {
-    const { data, error, count } = await supabaseAdmin
+    let query = supabaseAdmin
       .from('profiles')
       .select('*', { count: 'exact' });
+
+    if (req.user.role !== 'admin' && req.user.school_id) {
+      query = query.eq('school_id', req.user.school_id);
+    }
+
+    const { data, error, count } = await query;
 
     if (error) throw error;
 
